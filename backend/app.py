@@ -61,6 +61,16 @@ def update_department(id):
     db.commit()
 
     return jsonify({"message": "Department updated successfully"})
+@app.route("/delete_department/<int:id>", methods=["DELETE"])
+def delete_department(id):
+
+    query = "UPDATE department SET status = 0 WHERE dept_id = %s"
+    values = (id,)
+
+    cursor.execute(query, values)
+    db.commit()
+
+    return jsonify({"message": "Department deleted successfully"})
 
 
 if __name__ == "__main__":
