@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from db import db, cursor
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def home():
@@ -71,6 +73,23 @@ def delete_department(id):
     db.commit()
 
     return jsonify({"message": "Department deleted successfully"})
+@app.route("/admin_login", methods=["POST"])
+def admin_login():
+
+    data = request.json
+    username = data["username"]
+    password = data["password"]
+
+    query = "SELECT * FROM admin WHERE username=%s AND password=%s"
+    values = (username, password)
+
+    cursor.execute(query, values)
+    result = cursor.fetchone()
+
+    if result:
+        return jsonify({"message": "Login successful"})
+    else:
+        return jsonify({"message": "Invalid username or password"}), 401
 
 
 if __name__ == "__main__":
