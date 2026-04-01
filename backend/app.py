@@ -66,13 +66,27 @@ def update_department(id):
 @app.route("/delete_department/<int:id>", methods=["DELETE"])
 def delete_department(id):
 
-    query = "UPDATE department SET status = 0 WHERE dept_id = %s"
-    values = (id,)
+    # Check if employees exist
+    cursor.execute("DELETE FROM department WHERE dept_id = %s", (id,))
+    employees = cursor.fetchall()
 
-    cursor.execute(query, values)
+    if employees:
+        return jsonify({
+            "message": "Employees are linked with this department. Please reassign them first."
+        }), 400
+
+    # If no employees → delete
+    cursor.execute("UPDATE department SET status = 0 WHERE dept_id = %s", (id,))
     db.commit()
 
     return jsonify({"message": "Department deleted successfully"})
+@app.route("/restore_department/<int:id>", methods=["PUT"])
+def restore_department(id):
+
+    cursor.execute("UPDATE department SET status = 1 WHERE dept_id = %s", (id,))
+    db.commit()
+
+    return jsonify({"message": "Department restored successfully"})
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
 

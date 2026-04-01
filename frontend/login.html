@@ -13,35 +13,41 @@
     <button type="submit">Login</button>
 </form>
 
-<p id="message"style="color: green;"></p>
+<p id="message"></p>
 
 <script>
-    let data = await response.json();
-
-console.log(data);
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
+    e.preventDefault();   // 🚨 THIS STOPS PAGE REFRESH
 
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    let response = await fetch("http://127.0.0.1:5000/admin_login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            username: username,
-            password: password
-        })
-    });
+    try {
+        let response = await fetch("http://127.0.0.1:5000/admin_login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
 
-    let data = await response.json();
+        let data = await response.json();
 
-    document.getElementById("message").innerText = data.message;
+        console.log(data);  // 👈 DEBUG
 
-    if (response.status === 200) {
-        window.location.href = "dashboard.html";
+        document.getElementById("message").innerText = data.message;
+
+        if (response.status === 200) {
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 1000);
+        }
+
+    } catch (error) {
+        document.getElementById("message").innerText = "Error connecting to server";
     }
 });
 </script>
