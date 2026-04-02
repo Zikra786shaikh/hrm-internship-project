@@ -111,22 +111,3 @@ function logout() {
     localStorage.removeItem("adminLoggedIn");
     window.location.href = "login.html";
 }
-let response = await fetch(`${API}/admin_login`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ username, password })
-});
-
-let text = await response.text();   // 👈 first get raw response
-console.log("RAW:", text);
-
-let data;
-
-try {
-    data = JSON.parse(text);
-} catch {
-    alert("Server error (not JSON)");
-    return;
-}

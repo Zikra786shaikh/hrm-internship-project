@@ -17,7 +17,7 @@ async function loadDeleted() {
             <tr>
                 <td>${dept.dept_id}</td>
                 <td>${dept.dept_name}</td>
-                <td>${dept.description}</ td>
+                <td>${dept.description}</td>
                 <td>
                     <button onclick="restore(${dept.dept_id})">Restore</button>
                 </td>
@@ -35,22 +35,4 @@ async function restore(id) {
     alert("Restored!");
     loadDeleted();
 }
-let response = await fetch(`${API}/admin_login`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ username, password })
-});
 
-let text = await response.text();   // 👈 first get raw response
-console.log("RAW:", text);
-
-let data;
-
-try {
-    data = JSON.parse(text);
-} catch {
-    alert("Server error (not JSON)");
-    return;
-}
