@@ -1,10 +1,4 @@
-import mysql.connector
+import sqlite3
 
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database="hrm_system"
-)
-
+db = sqlite3.connect("database.db", check_same_thread=False)
 cursor = db.cursor()

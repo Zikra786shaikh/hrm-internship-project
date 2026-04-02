@@ -1,4 +1,4 @@
-const API = "http://127.0.0.1:5000"; // 🔴 CHANGE AFTER DEPLOY
+const API = "https://hrm-backend-al8a.onrender.com"; // 🔴 CHANGE AFTER DEPLOY
 
 window.onload = function () {
     loadDeleted();
