@@ -5,106 +5,125 @@ from db import db, cursor
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route("/")
 def home():
     return "HRM Backend Running"
 
 
-# Add Department API
-@app.route("/add_department", methods=["POST"])
-def add_department():
-
+# ---------------- LOGIN ----------------
+@app.route("/admin_login", methods=["POST"])
+def admin_login():
     data = request.json
 
-    dept_name = data["dept_name"]
-    description = data["description"]
+    username = data.get("username")
+    password = data.get("password")
 
-    query = "INSERT INTO department (dept_name, description) VALUES (%s, %s)"
-    values = (dept_name, description)
+    cursor.execute(
+        "SELECT * FROM admin WHERE username=%s AND password=%s",
+        (username, password)
+    )
 
-    cursor.execute(query, values)
+    result = cursor.fetchone()
+
+    if result:
+        return jsonify({"message": "Login successful"}), 200
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
+
+
+# ---------------- ADD ----------------
+@app.route("/add_department", methods=["POST"])
+def add_department():
+    data = request.json
+
+    dept_name = data.get("dept_name")
+    description = data.get("description")
+
+    cursor.execute(
+        "INSERT INTO department (dept_name, description, status) VALUES (%s,%s,1)",
+        (dept_name, description)
+    )
     db.commit()
 
-    return jsonify({"message": "Department added successfully"})
+    return jsonify({"message": "Added"})
 
 
-# View Departments API
+# ---------------- ACTIVE ----------------
 @app.route("/departments", methods=["GET"])
 def get_departments():
-
-    cursor.execute("SELECT * FROM department")
-    departments = cursor.fetchall()
+    cursor.execute("SELECT * FROM department WHERE status=1")
+    data = cursor.fetchall()
 
     result = []
-
-    for dept in departments:
+    for d in data:
         result.append({
-            "dept_id": dept[0],
-            "dept_name": dept[1],
-            "description": dept[2],
-            "created_at": str(dept[3]),
-            "updated_at": str(dept[4]),
-            "status": dept[5]
+            "dept_id": d[0],
+            "dept_name": d[1],
+            "description": d[2]
         })
 
     return jsonify(result)
+
+
+# ---------------- DELETE ----------------
+@app.route("/delete_department/<int:id>", methods=["DELETE"])
+def delete_department(id):
+
+    cursor.execute("UPDATE department SET status=0 WHERE dept_id=%s", (id,))
+    db.commit()
+
+    print("Deleted ID:", id)  # debug
+
+    return jsonify({"message": "Deleted"})
+
+#--------------update--------------
 @app.route("/update_department/<int:id>", methods=["PUT"])
 def update_department(id):
 
     data = request.json
 
-    dept_name = data["dept_name"]
-    description = data["description"]
+    dept_name = data.get("dept_name")
+    description = data.get("description")
 
-    query = "UPDATE department SET dept_name=%s, description=%s WHERE dept_id=%s"
-    values = (dept_name, description, id)
-
-    cursor.execute(query, values)
+    cursor.execute(
+        "UPDATE department SET dept_name=%s, description=%s WHERE dept_id=%s",
+        (dept_name, description, id)
+    )
     db.commit()
 
-    return jsonify({"message": "Department updated successfully"})
-@app.route("/delete_department/<int:id>", methods=["DELETE"])
-def delete_department(id):
+    return jsonify({"message": "Updated successfully"})
 
-    # Check if employees exist
-    cursor.execute("DELETE FROM department WHERE dept_id = %s", (id,))
-    employees = cursor.fetchall()
-
-    if employees:
-        return jsonify({
-            "message": "Employees are linked with this department. Please reassign them first."
-        }), 400
-
-    # If no employees → delete
-    cursor.execute("UPDATE department SET status = 0 WHERE dept_id = %s", (id,))
-    db.commit()
-
-    return jsonify({"message": "Department deleted successfully"})
+# ---------------- RESTORE ----------------
 @app.route("/restore_department/<int:id>", methods=["PUT"])
 def restore_department(id):
 
-    cursor.execute("UPDATE department SET status = 1 WHERE dept_id = %s", (id,))
+    cursor.execute("UPDATE department SET status=1 WHERE dept_id=%s", (id,))
     db.commit()
 
-    return jsonify({"message": "Department restored successfully"})
-@app.route("/admin_login", methods=["POST"])
-def admin_login():
+    return jsonify({"message": "Restored"})
 
-    data = request.json
-    username = data["username"]
-    password = data["password"]
 
-    query = "SELECT * FROM admin WHERE username=%s AND password=%s"
-    values = (username, password)
+# ---------------- DELETED ----------------
+@app.route("/deleted_departments", methods=["GET"])
+def deleted_departments():
 
-    cursor.execute(query, values)
-    result = cursor.fetchone()
+    cursor.execute("SELECT * FROM department WHERE status=0")
+    data = cursor.fetchall()
 
-    if result:
-        return jsonify({"message": "Login successful"})
-    else:
-        return jsonify({"message": "Invalid username or password"}), 401
+    print("Deleted Data:", data)  # debug
+
+    result = []
+
+    for d in data:
+        result.append({
+            "dept_id": d[0],
+            "dept_name": d[1],
+            "description": d[2]
+        })
+
+    return jsonify(result)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)

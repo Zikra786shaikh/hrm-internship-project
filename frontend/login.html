@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
@@ -16,40 +17,38 @@
 <p id="message"></p>
 
 <script>
+
+localStorage.removeItem("adminLoggedIn");
+
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
-    e.preventDefault();   // 🚨 THIS STOPS PAGE REFRESH
+    e.preventDefault();
 
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    try {
-        let response = await fetch("http://127.0.0.1:5000/admin_login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
-        });
+    let response = await fetch("http://127.0.0.1:5000/admin_login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+    });
 
-        let data = await response.json();
+    let data = await response.json();
 
-        console.log(data);  // 👈 DEBUG
+    document.getElementById("message").innerText = data.message;
 
-        document.getElementById("message").innerText = data.message;
+    if (response.status === 200) {
+        localStorage.setItem("adminLoggedIn", "true");
 
-        if (response.status === 200) {
-            setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 1000);
-        }
-
-    } catch (error) {
-        document.getElementById("message").innerText = "Error connecting to server";
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 800);
+    } else {
+        localStorage.removeItem("adminLoggedIn");
     }
 });
+
 </script>
 
 </body>

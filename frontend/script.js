@@ -1,12 +1,14 @@
-// Load departments when page opens
-window.onload = function() {
+const API = "http://127.0.0.1:5000"; // 🔴 CHANGE AFTER DEPLOY
+
+// Load departments
+window.onload = function () {
     fetchDepartments();
 };
 
-// Fetch all departments
+// Fetch departments
 async function fetchDepartments() {
 
-    let response = await fetch("http://127.0.0.1:5000/departments");
+    let response = await fetch(`${API}/departments`);
     let data = await response.json();
 
     let table = document.getElementById("deptTable");
@@ -27,13 +29,14 @@ async function fetchDepartments() {
     });
 }
 
-// Add department
+
+// Add
 async function addDepartment() {
 
     let dept_name = document.getElementById("dept_name").value;
     let description = document.getElementById("description").value;
 
-    await fetch("http://127.0.0.1:5000/add_department", {
+    await fetch(`${API}/add_department`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -44,41 +47,48 @@ async function addDepartment() {
     fetchDepartments();
 }
 
-// Delete department
+
+// Delete
 async function deleteDepartment(id) {
 
-    let confirmDelete = confirm("Are you sure you want to delete this department?");
-
+    let confirmDelete = confirm("Are you sure?");
     if (!confirmDelete) return;
 
-    let response = await fetch(`http://127.0.0.1:5000/delete_department/${id}`, {
+    let response = await fetch(`${API}/delete_department/${id}`, {
         method: "DELETE"
     });
 
     let data = await response.json();
 
     alert(data.message);
-
     fetchDepartments();
-
 }
+
+
+// Restore
 async function restoreDepartment(id) {
 
-    await fetch(`http://127.0.0.1:5000/restore_department/${id}`, {
+    await fetch(`${API}/restore_department/${id}`, {
         method: "PUT"
     });
 
-    alert("Department restored");
+    alert("Restored");
     fetchDepartments();
 }
 
-// Edit department
+
+// Edit
 function editDepartment(id, name, desc) {
 
     let newName = prompt("Enter new name:", name);
     let newDesc = prompt("Enter new description:", desc);
 
-    fetch(`http://127.0.0.1:5000/update_department/${id}`, {
+    if (!newName || !newDesc) {
+        alert("Cancelled");
+        return;
+    }
+
+    fetch(`${API}/update_department/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
@@ -87,5 +97,17 @@ function editDepartment(id, name, desc) {
             dept_name: newName,
             description: newDesc
         })
-    }).then(() => fetchDepartments());
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        fetchDepartments();
+    });
+}
+
+
+// Logout
+function logout() {
+    localStorage.removeItem("adminLoggedIn");
+    window.location.href = "login.html";
 }
