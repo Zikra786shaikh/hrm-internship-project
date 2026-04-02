@@ -18,6 +18,8 @@
 
 <script>
 
+const API = "https://hrm-backend-al8a.onrender.com";  // 🔴 CHANGE AFTER DEPLOY
+
 localStorage.removeItem("adminLoggedIn");
 
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
@@ -26,7 +28,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    let response = await fetch("http://127.0.0.1:5000/admin_login", {
+    let response = await fetch(`${API}/admin_login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
