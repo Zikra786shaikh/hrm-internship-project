@@ -14,24 +14,17 @@ def home():
 # ---------------- LOGIN ----------------
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
+
     data = request.json
 
     username = data.get("username")
     password = data.get("password")
 
-    cursor.execute(
-        "SELECT * FROM admin WHERE username=%s AND password=%s",
-        (username, password)
-    )
-
-    result = cursor.fetchone()
-
-    if result:
+    # 🔥 TEMP FIX (NO DB)
+    if username == "admin" and password == "1234":
         return jsonify({"message": "Login successful"}), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
-
-
 # ---------------- ADD ----------------
 @app.route("/add_department", methods=["POST"])
 def add_department():
