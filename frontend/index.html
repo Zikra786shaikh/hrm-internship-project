@@ -1,4 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<h2>Admin Login</h2>
+
+<form id="loginForm">
+    <input type="text" id="username" placeholder="Username" required><br><br>
+    <input type="password" id="password" placeholder="Password" required><br><br>
+    <button type="submit">Login</button>
+</form>
+
+<p id="message"></p>
+
+
+
 <script>
-    window.location.href = "login.html";
-    
+
+const API = "https://hrm-backend-al8a.onrender.com";
+
+// ❌ REMOVE THIS LINE
+// localStorage.removeItem("adminLoggedIn");
+
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    let username = document.getElementById("username").value.trim();
+    let password = document.getElementById("password").value.trim();
+
+    try {
+        let response = await fetch(`${API}/admin_login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        let data = await response.json();
+
+        console.log("STATUS:", response.status);
+        console.log("DATA:", data);
+
+        // ❌ WRONG LOGIN
+        if (response.status !== 200) {
+            document.getElementById("message").innerText = "Invalid username or password";
+            document.getElementById("message").style.color = "red";
+            return;
+        }
+
+        // ✅ CORRECT LOGIN
+        if (response.status === 200 && data.message === "Login successful") {
+
+            document.getElementById("message").innerText = "Login successful!";
+            document.getElementById("message").style.color = "green";
+
+            localStorage.setItem("adminLoggedIn", "true");
+
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 800);
+        }
+
+    } catch (error) {
+        document.getElementById("message").innerText = "Server error";
+    }
+});
+
 </script>
+
+
+</body>
+</html>
