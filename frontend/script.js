@@ -109,5 +109,5 @@ function editDepartment(id, name, desc) {
 // Logout
 function logout() {
     localStorage.removeItem("adminLoggedIn");
-    window.location.href = "login.html";
+    window.location.href = "index.html";
 }
