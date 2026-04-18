@@ -5,7 +5,7 @@
 
 <style>
 body { font-family: Arial; margin: 20px; }
-h2 { color: #333; }
+h2 { text-align: center; }
 
 input, button {
     padding: 8px;
@@ -13,18 +13,29 @@ input, button {
 }
 
 table {
-    border-collapse: collapse;
     width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
 }
 
 th, td {
     border: 1px solid #ccc;
     padding: 8px;
+    text-align: center;
 }
 
 th {
     background: #f4f4f4;
 }
+
+button {
+    cursor: pointer;
+}
+
+.edit-btn { background: orange; }
+.delete-btn { background: red; color: white; }
+.restore-btn { background: green; color: white; }
+
 </style>
 
 </head>
@@ -35,7 +46,8 @@ th {
 
 <div id="addSection">
 <h3>Add Role</h3>
-<input type="text" id="roleName" placeholder="Enter Role Name">
+<input type="text" id="roleName" placeholder="Role Name">
+<input type="text" id="roleDesc" placeholder="Role Description">
 <input type="text" id="permissions" placeholder="add,edit,delete">
 <button onclick="addRole()">Add Role</button>
 </div>
@@ -46,6 +58,7 @@ th {
 <tr>
 <th>ID</th>
 <th>Name</th>
+<th>Description</th>
 <th>Permissions</th>
 <th>Actions</th>
 </tr>
@@ -59,6 +72,7 @@ th {
 <tr>
 <th>ID</th>
 <th>Name</th>
+<th>Description</th>
 <th>Permissions</th>
 <th>Actions</th>
 </tr>
@@ -70,7 +84,7 @@ th {
 const BASE_URL = "https://hrm-backend-al8a.onrender.com";
 const role = localStorage.getItem("role");
 
-// Permission Logic
+// Permissions map
 const permissionsMap = {
     "Admin": ["add", "edit", "delete"],
     "Manager": ["add", "view"],
@@ -90,24 +104,51 @@ async function loadRoles() {
     const data = await res.json();
 
     let table = "";
-    data.forEach(role => {
+
+    data.forEach(r => {
 
         let actions = "";
 
+        // ✅ EDIT (ADMIN ONLY)
+        if (userPermissions.includes("edit")) {
+            actions += `<button class="edit-btn" onclick="editRole(${r.id}, '${r.name}', '${r.description}', '${r.permissions}')">Edit</button>`;
+        }
+
+        // DELETE
         if (userPermissions.includes("delete")) {
-            actions += `<button onclick="deleteRole(${role.id})">Delete</button>`;
+            actions += `<button class="delete-btn" onclick="deleteRole(${r.id})">Delete</button>`;
         }
 
         table += `
         <tr>
-            <td>${role.id}</td>
-            <td>${role.name}</td>
-            <td>${role.permissions.join(", ")}</td>
+            <td>${r.id}</td>
+            <td>${r.name}</td>
+            <td>${r.description || ""}</td>
+            <td>${r.permissions.join(", ")}</td>
             <td>${actions}</td>
         </tr>`;
     });
 
     document.getElementById("roleTable").innerHTML = table;
+}
+
+// EDIT FUNCTION
+function editRole(id, name, desc, permissions) {
+    const newName = prompt("Enter new role name:", name);
+    const newDesc = prompt("Enter description:", desc);
+    const newPerm = prompt("Enter permissions (comma separated):", permissions);
+
+    if (!newName) return;
+
+    fetch(`${BASE_URL}/update_role/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: newName,
+            description: newDesc,
+            permissions: newPerm.split(",").map(p => p.trim())
+        })
+    }).then(() => loadRoles());
 }
 
 // Deleted roles
@@ -118,14 +159,16 @@ async function loadDeletedRoles() {
     const data = await res.json();
 
     let table = "";
-    data.forEach(role => {
+
+    data.forEach(r => {
         table += `
         <tr>
-            <td>${role.id}</td>
-            <td>${role.name}</td>
-            <td>${role.permissions.join(", ")}</td>
+            <td>${r.id}</td>
+            <td>${r.name}</td>
+            <td>${r.description || ""}</td>
+            <td>${r.permissions.join(", ")}</td>
             <td>
-                <button onclick="restoreRole(${role.id})">Restore</button>
+                <button class="restore-btn" onclick="restoreRole(${r.id})">Restore</button>
             </td>
         </tr>`;
     });
@@ -136,12 +179,13 @@ async function loadDeletedRoles() {
 // Add role
 async function addRole() {
     const name = document.getElementById("roleName").value;
+    const desc = document.getElementById("roleDesc").value;
     const permissions = document.getElementById("permissions").value.split(",").map(p => p.trim());
 
     await fetch(`${BASE_URL}/add_role`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ name, permissions })
+        body: JSON.stringify({ name, description: desc, permissions })
     });
 
     loadRoles();

@@ -110,31 +110,42 @@ def restore_department(id):
             return jsonify({"message": "Restored"})
     return jsonify({"message": "Not found"}), 404
  # ---------------- ROLE DATA ----------------
-roles = []
-role_id_counter = 1
+# ---------------- ROLE DATA ----------------
+roles = [
+    {
+        "id": 1,
+        "name": "Admin",
+        "description": "Full access to system",
+        "permissions": ["add", "edit", "delete"],
+        "department_id": None,
+        "status": "active"
+    },
+    {
+        "id": 2,
+        "name": "Employee",
+        "description": "View only access",
+        "permissions": ["view"],
+        "department_id": None,
+        "status": "active"
+    }
+]
+
+role_id_counter = 3
 
 
 # ---------------- ADD ROLE ----------------
 @app.route("/add_role", methods=["POST"])
 def add_role():
-    global role_id_counter
+    role_description = data.get("description")
 
-    data = request.json
-
-    role_name = data.get("name")
-    permissions = data.get("permissions", [])
-    department_id = data.get("department_id")
-
-    if not role_name:
-        return jsonify({"error": "Role name is required"}), 400
-
-    new_role = {
-        "id": role_id_counter,
-        "name": role_name,
-        "permissions": permissions,
-        "department_id": department_id,
-        "status": "active"
-    }
+new_role = {
+    "id": role_id_counter,
+    "name": role_name,
+    "description": role_description,
+    "permissions": permissions,
+    "department_id": department_id,
+    "status": "active"
+}
 
     roles.append(new_role)
     role_id_counter += 1
