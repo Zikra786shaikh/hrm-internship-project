@@ -21,12 +21,28 @@ def home():
 # ---------------- LOGIN ----------------
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
+
     data = request.json
 
-    if data.get("username") == "admin" and data.get("password") == "1234":
-        return jsonify({"message": "Login successful"}), 200
+    username = data.get("username")
+    password = data.get("password")
+
+    # ROLE BASED LOGIN
+    users = {
+        "admin": {"password": "1234", "role": "Admin"},
+        "manager": {"password": "1234", "role": "Manager"},
+        "employee": {"password": "1234", "role": "Employee"}
+    }
+
+    user = users.get(username)
+
+    if user and user["password"] == password:
+        return jsonify({
+            "message": "Login successful",
+            "role": user["role"]
+        })
     else:
-        return jsonify({"message": "Invalid username or password"}), 401
+        return jsonify({"message": "Invalid credentials"}), 401
 
 
 # ---------------- GET ACTIVE ----------------

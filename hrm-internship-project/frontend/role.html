@@ -1,88 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Role Management</title>
-
-<style>
-body { font-family: Arial; margin: 20px; }
-h2 { color: #333; }
-
-input, button {
-    padding: 8px;
-    margin: 5px;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-}
-
-th {
-    background: #f4f4f4;
-}
-</style>
-
+    <title>Role Management</title>
 </head>
-
 <body>
 
 <h2>Role Management</h2>
 
-<div id="addSection">
+<!-- Add Role -->
 <h3>Add Role</h3>
 <input type="text" id="roleName" placeholder="Enter Role Name">
-<input type="text" id="permissions" placeholder="add,edit,delete">
+<input type="text" id="permissions" placeholder="Enter permissions (comma separated)">
 <button onclick="addRole()">Add Role</button>
-</div>
 
 <h3>Active Roles</h3>
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Permissions</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="roleTable"></tbody>
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Permissions</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="roleTable"></tbody>
 </table>
 
 <h3>Deleted Roles</h3>
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Permissions</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="deletedRoleTable"></tbody>
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Permissions</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="deletedRoleTable"></tbody>
 </table>
 
 <script>
-const BASE_URL = "https://hrm-backend-al8a.onrender.com";
-const role = localStorage.getItem("role");
-
-// Permission Logic
-const permissionsMap = {
-    "Admin": ["add", "edit", "delete"],
-    "Manager": ["add", "view"],
-    "Employee": ["view"]
-};
-
-const userPermissions = permissionsMap[role] || [];
-
-// Hide add section if no add permission
-if (!userPermissions.includes("add")) {
-    document.getElementById("addSection").style.display = "none";
-}
+const BASE_URL = "https://hrm-backend-al8a.onrender.com"// replace this
 
 // Load roles
 async function loadRoles() {
@@ -91,29 +49,22 @@ async function loadRoles() {
 
     let table = "";
     data.forEach(role => {
-
-        let actions = "";
-
-        if (userPermissions.includes("delete")) {
-            actions += `<button onclick="deleteRole(${role.id})">Delete</button>`;
-        }
-
         table += `
         <tr>
             <td>${role.id}</td>
             <td>${role.name}</td>
             <td>${role.permissions.join(", ")}</td>
-            <td>${actions}</td>
+            <td>
+                <button onclick="deleteRole(${role.id})">Delete</button>
+            </td>
         </tr>`;
     });
 
     document.getElementById("roleTable").innerHTML = table;
 }
 
-// Deleted roles
+// Load deleted roles
 async function loadDeletedRoles() {
-    if (!userPermissions.includes("delete")) return;
-
     const res = await fetch(`${BASE_URL}/get_deleted_roles`);
     const data = await res.json();
 
@@ -136,8 +87,8 @@ async function loadDeletedRoles() {
 // Add role
 async function addRole() {
     const name = document.getElementById("roleName").value;
-    const permissions = document.getElementById("permissions").value.split(",").map(p => p.trim());
-
+    const permissions = document.getElementById("permissions").value.split(",")
+    .map(p => p.trim());
     await fetch(`${BASE_URL}/add_role`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -147,16 +98,22 @@ async function addRole() {
     loadRoles();
 }
 
-// Delete
+// Delete role
 async function deleteRole(id) {
-    await fetch(`${BASE_URL}/delete_role/${id}`, { method: "DELETE" });
+    await fetch(`${BASE_URL}/delete_role/${id}`, {
+        method: "DELETE"
+    });
+
     loadRoles();
     loadDeletedRoles();
 }
 
-// Restore
+// Restore role
 async function restoreRole(id) {
-    await fetch(`${BASE_URL}/restore_role/${id}`, { method: "PUT" });
+    await fetch(`${BASE_URL}/restore_role/${id}`, {
+        method: "PUT"
+    });
+
     loadRoles();
     loadDeletedRoles();
 }

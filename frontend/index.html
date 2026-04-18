@@ -19,11 +19,7 @@
 
 
 <script>
-
 const API = "https://hrm-backend-al8a.onrender.com";
-
-// ❌ REMOVE THIS LINE
-// localStorage.removeItem("adminLoggedIn");
 
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
     e.preventDefault();
@@ -42,34 +38,26 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         let data = await response.json();
 
-        console.log("STATUS:", response.status);
-        console.log("DATA:", data);
-
-        // ❌ WRONG LOGIN
         if (response.status !== 200) {
             document.getElementById("message").innerText = "Invalid username or password";
             document.getElementById("message").style.color = "red";
             return;
         }
 
-        // ✅ CORRECT LOGIN
-        if (response.status === 200 && data.message === "Login successful") {
+        // ✅ SAVE ROLE
+        localStorage.setItem("role", data.role);
 
-            document.getElementById("message").innerText = "Login successful!";
-            document.getElementById("message").style.color = "green";
+        document.getElementById("message").innerText = "Login successful!";
+        document.getElementById("message").style.color = "green";
 
-            localStorage.setItem("adminLoggedIn", "true");
-
-            setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 800);
-        }
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 800);
 
     } catch (error) {
         document.getElementById("message").innerText = "Server error";
     }
 });
-
 </script>
 
 
