@@ -93,7 +93,89 @@ def restore_department(id):
             d["status"] = 1
             return jsonify({"message": "Restored"})
     return jsonify({"message": "Not found"}), 404
+ # ---------------- ROLE DATA ----------------
+roles = []
+role_id_counter = 1
 
+
+# ---------------- ADD ROLE ----------------
+@app.route("/add_role", methods=["POST"])
+def add_role():
+    global role_id_counter
+
+    data = request.json
+
+    role_name = data.get("name")
+    permissions = data.get("permissions", [])
+    department_id = data.get("department_id")
+
+    if not role_name:
+        return jsonify({"error": "Role name is required"}), 400
+
+    new_role = {
+        "id": role_id_counter,
+        "name": role_name,
+        "permissions": permissions,
+        "department_id": department_id,
+        "status": "active"
+    }
+
+    roles.append(new_role)
+    role_id_counter += 1
+
+    return jsonify({"message": "Role added successfully", "role": new_role})
+
+
+# ---------------- GET ACTIVE ROLES ----------------
+@app.route("/get_roles", methods=["GET"])
+def get_roles():
+    active_roles = [r for r in roles if r["status"] == "active"]
+    return jsonify(active_roles)
+
+
+# ---------------- GET DELETED ROLES ----------------
+@app.route("/get_deleted_roles", methods=["GET"])
+def get_deleted_roles():
+    deleted_roles = [r for r in roles if r["status"] == "deleted"]
+    return jsonify(deleted_roles)
+
+
+# ---------------- UPDATE ROLE ----------------
+@app.route("/update_role/<int:role_id>", methods=["PUT"])
+def update_role(role_id):
+    data = request.json
+
+    for role in roles:
+        if role["id"] == role_id:
+            role["name"] = data.get("name", role["name"])
+            role["permissions"] = data.get("permissions", role["permissions"])
+            role["department_id"] = data.get("department_id", role["department_id"])
+
+            return jsonify({"message": "Role updated successfully", "role": role})
+
+    return jsonify({"error": "Role not found"}), 404
+
+
+# ---------------- DELETE ROLE ----------------
+@app.route("/delete_role/<int:role_id>", methods=["DELETE"])
+def delete_role(role_id):
+    for role in roles:
+        if role["id"] == role_id:
+            role["status"] = "deleted"
+            return jsonify({"message": "Role deleted successfully"})
+
+    return jsonify({"error": "Role not found"}), 404
+
+
+# ---------------- RESTORE ROLE ----------------
+@app.route("/restore_role/<int:role_id>", methods=["PUT"])
+def restore_role(role_id):
+    for role in roles:
+        if role["id"] == role_id:
+            role["status"] = "active"
+            return jsonify({"message": "Role restored successfully"})
+
+    return jsonify({"error": "Role not found"}), 404
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
