@@ -12,12 +12,14 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # ================== STORAGE (In-Memory) ==================
 otp_storage = {}
 
+# --- Departments ---
 departments = [
     {"dept_id": 1, "dept_name": "HR", "description": "Human Resource", "status": 1},
     {"dept_id": 2, "dept_name": "IT", "description": "Tech", "status": 1}
 ]
 next_id = 3
 
+# --- Roles ---
 roles = [
     {"id": 1, "name": "Admin", "description": "Full access", "permissions": ["add", "edit", "delete"], "status": "active"},
     {"id": 2, "name": "Manager", "description": "Team management", "permissions": ["view", "add"], "status": "active"},
@@ -25,6 +27,7 @@ roles = [
 ]
 role_id_counter = 4
 
+# --- Employees (Synced with Task Assignments) ---
 employees = [
     {
         "id": 1,
@@ -39,10 +42,39 @@ employees = [
         "reporting_manager_id": None,
         "date_of_joining": "2024-01-01",
         "status": "active"
+    },
+    {
+        "id": 2,
+        "first_name": "John",
+        "last_name": "Doe",
+        "username": "john",
+        "password": generate_password_hash("1234"),
+        "email": "john@gmail.com",
+        "mobile": "8888888888",
+        "dept_id": 2,
+        "role_id": 3,
+        "reporting_manager_id": 1,
+        "date_of_joining": "2024-02-01",
+        "status": "active"
+    },
+    {
+        "id": 3,
+        "first_name": "Jane",
+        "last_name": "Smith",
+        "username": "jane",
+        "password": generate_password_hash("1234"),
+        "email": "jane@gmail.com",
+        "mobile": "7777777777",
+        "dept_id": 2,
+        "role_id": 2,
+        "reporting_manager_id": 1,
+        "date_of_joining": "2024-02-15",
+        "status": "active"
     }
 ]
-employee_id_counter = 2
+employee_id_counter = 4
 
+# --- Tasks ---
 tasks = [
     {"task_id": 1, "task_title": "Database Design", "task_description": "Create SQL schema", "task_priority": "High", "start_date": "2026-04-01", "end_date": "2026-04-10", "task_type": "Individual", "status": 1},
     {"task_id": 2, "task_title": "API Integration", "task_description": "Connect frontend", "task_priority": "Medium", "start_date": "2026-04-05", "end_date": "2026-04-12", "task_type": "Individual", "status": 1},
@@ -60,16 +92,14 @@ task_assignments = [
 task_id_counter = 5
 assignment_id_counter = 5
 
-# ================== HELPER FUNCTIONS ==================
+# ================== EMAIL HELPER ==================
 def send_email_otp(receiver_email, otp):
     try:
         email_user = os.environ.get("EMAIL_ADDRESS")
         email_pass = os.environ.get("EMAIL_PASSWORD")
-
         if not email_user or not email_pass:
             print("ENV NOT SET - skipping email")
             return
-
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(email_user, email_pass)
@@ -79,19 +109,29 @@ def send_email_otp(receiver_email, otp):
     except Exception as e:
         print("Email error:", e)
 
-# ================== ROUTES ==================
+# ================== CORE ROUTES ==================
 @app.route("/")
 def home():
     return "Backend Running"
 
 @app.route("/test_env")
 def test_env():
-    return {
-        "email": os.environ.get("EMAIL_ADDRESS"),
-        "status": "working"
-    }
+    return {"email": os.environ.get("EMAIL_ADDRESS"), "status": "working"}
 
-# --- Department Management ---
+# --- Login ---
+@app.route("/admin_login", methods=["POST"])
+def admin_login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+    for emp in employees:
+        if emp["username"] == username and emp["status"] == "active":
+            if check_password_hash(emp["password"], password):
+                role = "Admin" if emp["role_id"] == 1 else "Manager" if emp["role_id"] == 2 else "Employee"
+                return jsonify({"message": "Login successful", "role": role, "id": emp["id"]})
+    return jsonify({"message": "Invalid credentials"}), 401
+
+# --- Department Module ---
 @app.route("/departments", methods=["GET"])
 def get_departments():
     return jsonify([d for d in departments if d["status"] == 1])
@@ -100,12 +140,7 @@ def get_departments():
 def add_department():
     global next_id
     data = request.json
-    new_dept = {
-        "dept_id": next_id,
-        "dept_name": data.get("dept_name"),
-        "description": data.get("description"),
-        "status": 1
-    }
+    new_dept = {"dept_id": next_id, "dept_name": data.get("dept_name"), "description": data.get("description"), "status": 1}
     departments.append(new_dept)
     next_id += 1
     return jsonify({"message": "Department added"})
@@ -140,7 +175,7 @@ def restore_department(id):
             return jsonify({"message": "Restored"})
     return jsonify({"message": "Not found"}), 404
 
-# --- Role Management ---
+# --- Role Module ---
 @app.route("/get_roles", methods=["GET"])
 def get_roles():
     return jsonify([r for r in roles if r["status"] == "active"])
@@ -149,13 +184,7 @@ def get_roles():
 def add_role():
     global role_id_counter
     data = request.json
-    new_role = {
-        "id": role_id_counter,
-        "name": data.get("name"),
-        "description": data.get("description"),
-        "permissions": data.get("permissions", []),
-        "status": "active"
-    }
+    new_role = {"id": role_id_counter, "name": data.get("name"), "description": data.get("description"), "permissions": data.get("permissions", []), "status": "active"}
     roles.append(new_role)
     role_id_counter += 1
     return jsonify({"message": "Role added"})
@@ -176,7 +205,7 @@ def restore_role(id):
             return jsonify({"message": "Restored"})
     return jsonify({"message": "Not found"}), 404
 
-# --- Employee Management ---
+# --- Employee Module ---
 @app.route("/employees", methods=["GET"])
 def get_employees():
     return jsonify([e for e in employees if e["status"] == "active"])
@@ -187,39 +216,18 @@ def add_employee():
     data = request.json
     new_emp = {
         "id": employee_id_counter,
-        "first_name": data.get("first_name"),
-        "last_name": data.get("last_name"),
-        "username": data.get("username"),
-        "password": generate_password_hash(data.get("password")),
-        "email": data.get("email"),
-        "mobile": data.get("mobile"),
-        "dept_id": data.get("dept_id"),
-        "role_id": data.get("role_id"),
+        "first_name": data.get("first_name"), "last_name": data.get("last_name"),
+        "username": data.get("username"), "password": generate_password_hash(data.get("password")),
+        "email": data.get("email"), "mobile": data.get("mobile"),
+        "dept_id": data.get("dept_id"), "role_id": data.get("role_id"),
         "reporting_manager_id": data.get("reporting_manager_id"),
-        "date_of_joining": data.get("date_of_joining"),
-        "status": "active"
+        "date_of_joining": data.get("date_of_joining"), "status": "active"
     }
     employees.append(new_emp)
     employee_id_counter += 1
     return jsonify({"message": "Employee added"})
 
-# --- Authentication ---
-@app.route("/admin_login", methods=["POST"])
-def admin_login():
-    data = request.json
-    username = data.get("username")
-    password = data.get("password")
-
-    for emp in employees:
-        if emp["username"] == username and emp["status"] == "active":
-            if check_password_hash(emp["password"], password):
-                # Mapping roles based on role_id
-                role_label = "Admin" if emp["role_id"] == 1 else "Manager" if emp["role_id"] == 2 else "Employee"
-                return jsonify({"message": "Login successful", "role": role_label, "id": emp["id"]})
-
-    return jsonify({"message": "Invalid credentials"}), 401
-
-# --- Password Reset ---
+# --- OTP / Password Reset ---
 @app.route("/forgot_password", methods=["POST"])
 def forgot_password():
     data = request.json
@@ -248,20 +256,16 @@ def reset_password():
             return jsonify({"message": "Password updated"}), 200
     return jsonify({"message": "Error"}), 400
 
-# --- Task Management ---
+# --- Task Management Module ---
 @app.route("/add_task", methods=["POST"])
 def add_task():
     global task_id_counter, assignment_id_counter
     data = request.json
     new_task = {
         "task_id": task_id_counter,
-        "task_title": data.get("task_title"),
-        "task_description": data.get("task_description"),
-        "task_priority": data.get("task_priority"),
-        "start_date": data.get("start_date"),
-        "end_date": data.get("end_date"),
-        "task_type": data.get("task_type"),
-        "status": 1
+        "task_title": data.get("task_title"), "task_description": data.get("task_description"),
+        "task_priority": data.get("task_priority"), "start_date": data.get("start_date"),
+        "end_date": data.get("end_date"), "task_type": data.get("task_type"), "status": 1
     }
     tasks.append(new_task)
     new_assignment = {
@@ -289,11 +293,11 @@ def get_dashboard_tasks():
         filtered = [a for a in task_assignments if a["employee_id"] in reports]
     elif role == "Employee":
         filtered = [a for a in task_assignments if a["employee_id"] == u_id]
+    elif role == "Admin":
+        filtered = task_assignments
 
-    if f_status: 
-        filtered = [a for a in filtered if a["status"] == f_status]
-    if f_emp: 
-        filtered = [a for a in filtered if a["employee_id"] == int(f_emp)]
+    if f_status: filtered = [a for a in filtered if a["status"] == f_status]
+    if f_emp: filtered = [a for a in filtered if a["employee_id"] == int(f_emp)]
 
     result = []
     for a in filtered:
@@ -301,8 +305,7 @@ def get_dashboard_tasks():
         if t:
             emp = next((e for e in employees if e["id"] == a["employee_id"]), None)
             result.append({
-                **t, 
-                "status": a["status"], 
+                **t, "status": a["status"], 
                 "employee_name": f"{emp['first_name']} {emp['last_name']}" if emp else "Unknown"
             })
 
