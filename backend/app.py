@@ -92,16 +92,21 @@ def forgot_password():
     data = request.json
     email = data.get("email")
 
-    # ✅ generate OTP for ANY email
-    otp = str(random.randint(100000, 999999))
-    otp_storage[email] = otp
+    # check if email exists
+    for emp in employees:
+        if emp["email"] == email:
 
-    try:
-        send_email_otp(email, otp)
-    except:
-        print("OTP email failed but app continues")
+            otp = str(random.randint(100000, 999999))
+            otp_storage[email] = otp
 
-    return jsonify({"message": "OTP sent to email"}), 200
+            try:
+                send_email_otp(email, otp)
+            except:
+                print("OTP email failed but app continues")
+
+            return jsonify({"message": "OTP sent to email"}), 200
+
+    return jsonify({"message": "Email not found"}), 404
 # ================== VERIFY OTP ==================
 @app.route("/verify_otp", methods=["POST"])
 def verify_otp():
@@ -122,11 +127,14 @@ def reset_password():
     email = data.get("email")
     new_password = data.get("new_password")
 
-    # ✅ Just accept any email (for testing)
-    print("Password reset for:", email)
-    print("New password:", new_password)
+    for emp in employees:
+        if emp["email"] == email:
 
-    return jsonify({"message": "Password updated successfully"}), 200
+            emp["password"] = generate_password_hash(new_password)
+
+            return jsonify({"message": "Password updated successfully"}), 200
+
+    return jsonify({"message": "Error updating password"}), 400
 
 
 # ================== RUN ==================
