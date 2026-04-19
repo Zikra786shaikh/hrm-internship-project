@@ -253,9 +253,6 @@ task_assignments = [
 task_id_counter = 5
 assignment_id_counter = 5
 
-@app.route("/employees", methods=["GET"])
-def get_employees():
-    return jsonify([e for e in employees if e["status"] == "active"])
 
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
