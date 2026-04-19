@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Management</title>
+
+    <style>
+       body {
+    font-family: Arial;
+    background: #f4f6f9;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* FORM CARD */
+form {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+}
+
+/* INPUTS */
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* BUTTON */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+/* SPECIAL BUTTON COLORS */
+button[type="submit"] {
+    background: #007bff;
+    color: white;
+}
+
+.edit-btn {
+    background: #ffc107;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    background: white;
+    margin-top: 20px;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th {
+    background: #343a40;
+    color: white;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background: #f1f1f1;
+}
+
+/* SEARCH */
+#search {
+    margin-bottom: 10px;
+    padding: 10px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Employee Management</h2>
+
+<input type="text" id="search" placeholder="Search..." onkeyup="searchEmployee()">
+
+<form id="employeeForm">
+    <input type="text" id="first_name" placeholder="First Name" required>
+    <input type="text" id="last_name" placeholder="Last Name" required>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <input type="email" id="email" placeholder="Email">
+    <input type="text" id="mobile" placeholder="Mobile">
+
+    <select id="dept_id"></select>
+    <select id="role_id"></select>
+    <select id="reporting_manager_id"></select>
+
+    <input type="date" id="date_of_joining">
+
+    <button type="submit">Save</button>
+</form>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Role</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="table"></tbody>
+</table>
+
+</div>
+
+<script>
+
+const API = "https://hrm-backend-al8a.onrender.com";
+
+let editId = null;
+let employees = [];
+let deptMap = {};
+let roleMap = {};
+
+// LOAD EVERYTHING
+async function init() {
+
+    let d = await fetch(API + "/departments");
+    let depts = await d.json();
+
+    let r = await fetch(API + "/get_roles");
+    let roles = await r.json();
+
+    let e = await fetch(API + "/employees");
+    employees = await e.json();
+
+    // map
+    depts.forEach(x => deptMap[x.dept_id] = x.dept_name);
+    roles.forEach(x => roleMap[x.id] = x.name);
+
+    // dropdown
+    document.getElementById("dept_id").innerHTML =
+        depts.map(d => `<option value="${d.dept_id}">${d.dept_name}</option>`).join("");
+
+    document.getElementById("role_id").innerHTML =
+        roles.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
+
+    document.getElementById("reporting_manager_id").innerHTML =
+        employees.map(e => `<option value="${e.id}">${e.first_name}</option>`).join("");
+
+    loadTable();
+}
+
+// TABLE
+function loadTable() {
+    let t = document.getElementById("table");
+    t.innerHTML = "";
+
+    employees.forEach(e => {
+        t.innerHTML += `
+            <tr>
+                <td>${e.first_name} ${e.last_name}</td>
+                <td>${deptMap[e.dept_id]}</td>
+                <td>${roleMap[e.role_id]}</td>
+                <td>
+                    <button onclick="edit(${e.id})">Edit</button>
+                    <button onclick="del(${e.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// ADD / UPDATE
+document.getElementById("employeeForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    let data = {
+        first_name: first_name.value,
+        last_name: last_name.value,
+        username: username.value,
+        password: password.value,
+        email: email.value,
+        mobile: mobile.value,
+        dept_id: dept_id.value,
+        role_id: role_id.value,
+        reporting_manager_id: reporting_manager_id.value,
+        date_of_joining: date_of_joining.value
+    };
+
+    if (editId) {
+        await fetch(API + "/update_employee/" + editId, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
+        editId = null;
+    } else {
+        await fetch(API + "/add_employee", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
+    }
+
+    init();
+});
+
+// EDIT
+function edit(id) {
+    let e = employees.find(x => x.id == id);
+
+    first_name.value = e.first_name;
+    last_name.value = e.last_name;
+
+    editId = id;
+}
+
+// DELETE
+async function del(id) {
+    await fetch(API + "/delete_employee/" + id, {method: "DELETE"});
+    init();
+}
+
+// SEARCH
+function searchEmployee() {
+    let v = document.getElementById("search").value.toLowerCase();
+
+    let rows = document.querySelectorAll("#table tr");
+
+    rows.forEach(r => {
+        r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
+    });
+}
+
+init();
+
+</script>
+
+</body>
+</html>

@@ -1,22 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Login</title>
+    <title>Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: Arial;
+        }
+
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+    </style>
 </head>
+
 <body>
 
-<h2>Admin Login</h2>
+<div class="login-box">
+    <h2>HRM Login</h2>
 
-<form id="loginForm">
-    <input type="text" id="username" placeholder="Username" required><br><br>
-    <input type="password" id="password" placeholder="Password" required><br><br>
-    <button type="submit">Login</button>
-</form>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
 
-<p id="message"></p>
-
-
+    <p id="message"></p>
+</div>
 
 <script>
 const API = "https://hrm-backend-al8a.onrender.com";
@@ -27,39 +68,28 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     let username = document.getElementById("username").value.trim();
     let password = document.getElementById("password").value.trim();
 
-    try {
-        let response = await fetch(`${API}/admin_login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ username, password })
-        });
+    let response = await fetch(`${API}/admin_login`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ username, password })
+    });
 
-        let data = await response.json();
+    let data = await response.json();
 
-        if (response.status !== 200) {
-            document.getElementById("message").innerText = "Invalid username or password";
-            document.getElementById("message").style.color = "red";
-            return;
-        }
-
-        // ✅ SAVE ROLE
-        localStorage.setItem("role", data.role);
-
-        document.getElementById("message").innerText = "Login successful!";
-        document.getElementById("message").style.color = "green";
-
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 800);
-
-    } catch (error) {
-        document.getElementById("message").innerText = "Server error";
+    if (response.status !== 200) {
+        document.getElementById("message").innerText = "Invalid login";
+        return;
     }
+
+    localStorage.setItem("role", data.role);
+
+    document.getElementById("message").innerText = "Login success";
+
+    setTimeout(() => {
+        window.location.href = "dashboard.html";
+    }, 800);
 });
 </script>
-
 
 </body>
 </html>
