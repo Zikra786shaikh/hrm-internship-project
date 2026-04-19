@@ -92,17 +92,21 @@ def forgot_password():
     data = request.json
     email = data.get("email")
 
-    return jsonify({"message": "If email exists, OTP will be sent"}), 200
+    # check if email exists
+    for emp in employees:
+        if emp["email"] == email:
+
             otp = str(random.randint(100000, 999999))
             otp_storage[email] = otp
 
-            send_email_otp(email, otp)
+            try:
+                send_email_otp(email, otp)
+            except:
+                print("OTP email failed but app continues")
 
             return jsonify({"message": "OTP sent to email"}), 200
 
     return jsonify({"message": "Email not found"}), 404
-
-
 # ================== VERIFY OTP ==================
 @app.route("/verify_otp", methods=["POST"])
 def verify_otp():
