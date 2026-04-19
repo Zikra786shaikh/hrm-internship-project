@@ -29,8 +29,8 @@ def send_email_otp(receiver_email, otp):
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(
-          os.environ.get("EMAIL_ADDRESS")
-os.environ.get("EMAIL_PASSWORD")
+          os.environ.get("EMAIL_ADDRESS"),
+          os.environ.get("EMAIL_PASSWORD")
         )
 
         message = f"Subject: HRM OTP Verification\n\nYour OTP is: {otp}"
