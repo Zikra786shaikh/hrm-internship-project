@@ -232,12 +232,26 @@ def reset_password():
             emp["password"] = generate_password_hash(data.get("new_password"))
             return jsonify({"message": "Password updated"}), 200
     return jsonify({"message": "Error"}), 400
+    # ... (Keep all your existing imports and code above Task Management Module) ...
 
 # ================== TASK MANAGEMENT MODULE ==================
-tasks = []
-task_assignments = []
-task_id_counter = 1
-assignment_id_counter = 1
+# I added 3 sample tasks here so you can see the bars immediately
+tasks = [
+    {"task_id": 1, "task_title": "Database Design", "task_description": "Create SQL schema", "task_priority": "High", "start_date": "2026-04-01", "end_date": "2026-04-10", "task_type": "Individual", "created_at": "2026-04-01 10:00:00", "status": 1},
+    {"task_id": 2, "task_title": "API Integration", "task_description": "Connect frontend to Render", "task_priority": "Medium", "start_date": "2026-04-05", "end_date": "2026-04-12", "task_type": "Individual", "created_at": "2026-04-05 11:00:00", "status": 1},
+    {"task_id": 3, "task_title": "UI Bug Fixes", "task_description": "Fix alignment on dashboard", "task_priority": "Low", "start_date": "2026-04-15", "end_date": "2026-04-20", "task_type": "Team", "created_at": "2026-04-15 09:00:00", "status": 1}
+]
+
+task_assignments = [
+    {"assignment_id": 1, "task_id": 1, "employee_id": 1, "assigned_by": 1, "status": "Completed"},
+    {"assignment_id": 2, "task_id": 2, "employee_id": 1, "assigned_by": 1, "status": "Pending"},
+    {"assignment_id": 3, "task_id": 3, "employee_id": 1, "assigned_by": 1, "status": "In Progress"}
+]
+
+task_id_counter = 4
+assignment_id_counter = 4
+
+# ... (Keep the rest of your routes: add_task, get_dashboard_tasks, etc.) ...
 
 @app.route("/add_task", methods=["POST"])
 def add_task():

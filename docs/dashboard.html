@@ -87,6 +87,15 @@ if (!role) {
     <div class="text-center mt-4">
         <button onclick="goRole()" class="btn btn-success m-2">Role Management</button>
         <button onclick="goEmployee()" class="btn btn-warning m-2">Employee Management</button>
+    <button onclick="goTasks()" class="btn btn-info m-2 text-white" style="background-color: #17a2b8;">Task Management</button>
+</div>
+
+<script>
+// Add this function to your NAV script section
+function goTasks() {
+    window.location.href = "task_dashboard.html";
+}
+</script>
     </div>
 
     <div class="text-center mt-4">
@@ -210,6 +219,12 @@ function logout() {
 
 // INIT
 loadDepartments();
+
+// Add this function to the bottom script section of dashboard.html
+function goTasks() {
+    window.location.href = "task_dashboard.html";
+}
+
 
 </script>
 

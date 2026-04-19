@@ -8,12 +8,26 @@
     <div class="dashboard-container">
         <h2>Task Management Dashboard</h2>
 
-        <div class="stats-container">
-            <div class="stat-card">Total: <span id="stat-total">0</span></div>
-            <div class="stat-card">Pending: <span id="stat-pending">0</span></div>
-            <div class="stat-card">In Progress: <span id="stat-progress">0</span></div>
-            <div class="stat-card">Completed: <span id="stat-completed">0</span></div>
+        <div class="row text-center mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white p-3">
+            <h5>Total Tasks</h5>
+            <h2 id="stat-total">0</h2>
         </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark p-3">
+            <h5>Pending</h5>
+            <h2 id="stat-pending">0</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white p-3">
+            <h5>Completed</h5>
+            <h2 id="stat-completed">0</h2>
+        </div>
+    </div>
+</div>
 
         <button onclick="openTaskModal()">+ Create Task</button>
 
