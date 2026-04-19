@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import random
 import smtplib
+import os
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -11,25 +13,25 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 otp_storage = {}
 
 # ================== EMAIL CONFIG ==================
-EMAIL_ADDRESS = "teamimrusaz123@gmail.com"
-EMAIL_PASSWORD = "aggr oyay zloj yrna"
-
 def send_email_otp(receiver_email, otp):
     try:
+        import os
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        server.login(
+            os.environ.get("EMAIL_ADDRESS"),
+            os.environ.get("EMAIL_PASSWORD")
+        )
 
         message = f"Subject: HRM OTP Verification\n\nYour OTP is: {otp}"
 
-        server.sendmail(EMAIL_ADDRESS, receiver_email, message)
+        server.sendmail(os.environ.get("EMAIL_ADDRESS"), receiver_email, message)
         server.quit()
 
         print("OTP sent successfully")
+
     except Exception as e:
         print("Email error:", e)
-
-
 # ================== EMPLOYEES (UPDATED WITH HASHING) ==================
 employees = [
     {
