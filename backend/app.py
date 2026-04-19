@@ -25,20 +25,21 @@ otp_storage = {}
 # ================== EMAIL CONFIG ==================
 def send_email_otp(receiver_email, otp):
     try:
-        import os
+        email_user = os.environ.get("EMAIL_ADDRESS")
+        email_pass = os.environ.get("EMAIL_PASSWORD")
+
+        if not email_user or not email_pass:
+            print("ENV NOT SET - skipping email")
+            return
+
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login(
-          os.environ.get("EMAIL_ADDRESS"),
-          os.environ.get("EMAIL_PASSWORD")
-        )
+        server.login(email_user, email_pass)
 
-        message = f"Subject: HRM OTP Verification\n\nYour OTP is: {otp}"
+        message = f"Subject: HRM OTP\n\nOTP: {otp}"
 
-        server.sendmail(os.environ.get("EMAIL_ADDRESS"), receiver_email, message)
+        server.sendmail(email_user, receiver_email, message)
         server.quit()
-
-        print("OTP sent successfully")
 
     except Exception as e:
         print("Email error:", e)
