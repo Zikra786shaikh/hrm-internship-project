@@ -125,7 +125,7 @@ tr:hover {
 
     <button type="submit">Save</button>
 </form>
-
+<button onclick="goDeleted()" style="margin-top:10px;">View Deleted Employees</button>
 <table border="1">
     <thead>
         <tr>
@@ -261,7 +261,9 @@ function searchEmployee() {
 }
 
 init();
-
+function goDeleted() {
+    window.location.href = "deleted_employees.html";
+}
 </script>
 
 </body>

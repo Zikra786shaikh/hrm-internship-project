@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deleted Employees</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background: #343a40;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .restore-btn {
+            background: green;
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .back-btn {
+            background: blue;
+            color: white;
+            padding: 8px 12px;
+            margin-top: 15px;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Deleted Employees</h2>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
+<button class="back-btn" onclick="goBack()">Back</button>
+
+</div>
+
+<script>
+
+const API = "https://hrm-backend-al8a.onrender.com";
+
+// LOAD DELETED EMPLOYEES
+async function loadDeleted() {
+
+    let res = await fetch(API + "/deleted_employees");
+    let data = await res.json();
+
+    let t = document.getElementById("table");
+    t.innerHTML = "";
+
+    data.forEach(e => {
+        t.innerHTML += `
+            <tr>
+                <td>${e.first_name} ${e.last_name}</td>
+                <td>${e.email}</td>
+                <td>
+                    <button class="restore-btn" onclick="restore(${e.id})">Restore</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// RESTORE
+async function restore(id) {
+    await fetch(API + "/restore_employee/" + id, {
+        method: "PUT"
+    });
+
+    alert("Employee Restored!");
+    loadDeleted();
+}
+
+// BACK
+function goBack() {
+    window.location.href = "employee.html";
+}
+
+loadDeleted();
+
+</script>
+
+</body>
+</html>

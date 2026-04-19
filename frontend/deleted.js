@@ -35,4 +35,6 @@ async function restore(id) {
     alert("Restored!");
     loadDeleted();
 }
-
+function goDeleted() {
+    window.location.href = "deleted_employees.html";
+}
