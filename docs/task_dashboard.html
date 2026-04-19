@@ -2,50 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HRM - Task Management</title>
-    <link rel="stylesheet" href="../css/style.css"> </head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .dashboard-wrapper { max-width: 1200px; margin: 30px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        /* Statistical "Bar" Cards */
+        .stat-bar { border: none; border-left: 5px solid; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
+        .stat-bar:hover { transform: translateY(-3px); }
+        .bar-total { border-left-color: #667eea; background: #eef2ff; }
+        .bar-completed { border-left-color: #43e97b; background: #ebfaf0; }
+        .bar-pending { border-left-color: #ff9a9e; background: #fff5f5; }
+        .stat-bar h2 { margin: 0; font-weight: 700; color: #333; }
+        .stat-bar p { margin: 0; color: #666; text-transform: uppercase; font-size: 0.8rem; font-weight: 600; }
+
+        /* Table Design */
+        .table thead { background: #343a40; color: white; }
+        .table tbody tr:hover { background-color: #f8f9fa; cursor: pointer; }
+        .badge-status { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; }
+
+        /* Filter Section */
+        .filter-section { background: #ffffff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px; margin-bottom: 25px; }
+        
+        /* Modal Overlay */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000; }
+        .custom-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; width: 500px; z-index: 1001; display: none; }
+    </style>
+</head>
 <body>
-    <div class="dashboard-container">
-        <h2>Task Management Dashboard</h2>
 
-        <div class="row text-center mb-4">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white p-3">
-            <h5>Total Tasks</h5>
-            <h2 id="stat-total">0</h2>
+<div class="container dashboard-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-secondary">Task Management Dashboard</h2>
+        <button onclick="window.location.href='dashboard.html'" class="btn btn-outline-dark btn-sm">← Back to Main Dashboard</button>
+    </div>
+
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card stat-bar bar-total p-3">
+                <p>Total Tasks</p>
+                <h2 id="stat-total">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-bar bar-pending p-3">
+                <p>Pending / In Progress</p>
+                <h2 id="stat-pending">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-bar bar-completed p-3">
+                <p>Completed</p>
+                <h2 id="stat-completed">0</h2>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-warning text-dark p-3">
-            <h5>Pending</h5>
-            <h2 id="stat-pending">0</h2>
+
+    <button onclick="openTaskModal()" class="btn btn-primary mb-4 px-4 fw-bold shadow-sm">+ Create Task</button>
+
+    <div class="filter-section shadow-sm">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">By Employee</label>
+                <select id="filterEmployee" class="form-select" onchange="loadTasks()"></select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">By Status</label>
+                <select id="filterStatus" class="form-select" onchange="loadTasks()">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button onclick="loadTasks()" class="btn btn-secondary w-100">Apply Filters</button>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white p-3">
-            <h5>Completed</h5>
-            <h2 id="stat-completed">0</h2>
-        </div>
-    </div>
-</div>
 
-        <button onclick="openTaskModal()">+ Create Task</button>
-
-        <div class="filter-bar">
-            <select id="filterEmployee" onchange="loadTasks()">
-                <option value="">Filter By Employee</option>
-            </select>
-            <select id="filterStatus" onchange="loadTasks()">
-                <option value="">Filter By Status</option>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-            </select>
-            <input type="date" id="fromDate" onchange="loadTasks()">
-            <input type="date" id="toDate" onchange="loadTasks()">
-        </div>
-
-        <table>
+    <div class="table-responsive">
+        <table class="table align-middle">
             <thead>
                 <tr>
                     <th>Sr.No</th>
@@ -54,37 +93,59 @@
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th class="text-center">Action</th>
                 </tr>
             </thead>
-            <tbody id="taskTableBody"></tbody>
+            <tbody id="taskTableBody">
+                </tbody>
         </table>
-
-        <div id="pagination"></div>
     </div>
+</div>
 
-    <div id="taskModal" style="display:none;">
-        <form id="taskForm">
-            <input type="text" id="task_title" placeholder="Task Title" required>
-            <textarea id="task_description" placeholder="Description"></textarea>
-            <select id="task_priority">
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-            </select>
-            <select id="assigned_to" required>
+<div id="modalOverlay" class="modal-overlay" onclick="closeTaskModal()"></div>
+<div id="taskModal" class="custom-modal shadow-lg">
+    <h4 class="mb-4">Assign New Task</h4>
+    <form id="taskForm">
+        <input type="text" id="task_title" class="form-control mb-3" placeholder="Task Title" required>
+        <textarea id="task_description" class="form-control mb-3" placeholder="Task Description"></textarea>
+        <div class="row g-2 mb-3">
+            <div class="col-md-6">
+                <select id="task_priority" class="form-select">
+                    <option value="High">High Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="Low">Low Priority</option>
                 </select>
-            <input type="date" id="start_date" required>
-            <input type="date" id="end_date" required>
-            <select id="task_type">
-                <option value="Individual">Individual</option>
-                <option value="Team">Team</option>
-            </select>
-            <button type="submit">Create Task</button>
-            <button type="button" onclick="closeTaskModal()">Cancel</button>
-        </form>
-    </div>
+            </div>
+            <div class="col-md-6">
+                <select id="task_type" class="form-select">
+                    <option value="Individual">Individual</option>
+                    <option value="Team">Team</option>
+                </select>
+            </div>
+        </div>
+        <select id="assigned_to" class="form-select mb-3" required></select>
+        <div class="row g-2 mb-4">
+            <div class="col-md-6"><label class="small">Start Date</label><input type="date" id="start_date" class="form-control"></div>
+            <div class="col-md-6"><label class="small">End Date</label><input type="date" id="end_date" class="form-control"></div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success flex-grow-1">Create Task</button>
+            <button type="button" onclick="closeTaskModal()" class="btn btn-light">Cancel</button>
+        </div>
+    </form>
+</div>
 
-    <script src="../js/task.js"></script>
+<script src="../js/task.js"></script>
+<script>
+    // Link modal functions to elements
+    function openTaskModal() { 
+        document.getElementById("taskModal").style.display = "block"; 
+        document.getElementById("modalOverlay").style.display = "block"; 
+    }
+    function closeTaskModal() { 
+        document.getElementById("taskModal").style.display = "none"; 
+        document.getElementById("modalOverlay").style.display = "none"; 
+    }
+</script>
 </body>
 </html>
