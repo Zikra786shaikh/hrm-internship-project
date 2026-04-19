@@ -42,6 +42,18 @@
         button:hover {
             background: #5a67d8;
         }
+
+        .forgot {
+            font-size: 14px;
+            color: #667eea;
+            cursor: pointer;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .forgot:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -56,6 +68,9 @@
         <button type="submit">Login</button>
     </form>
 
+    <!-- ✅ Added Forgot Password Link -->
+    <span class="forgot" onclick="goToForgot()">Forgot Password?</span>
+
     <p id="message"></p>
 </div>
 
@@ -68,19 +83,30 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     let username = document.getElementById("username").value.trim();
     let password = document.getElementById("password").value.trim();
 
+    // ✅ Store username (useful later if needed)
+    localStorage.setItem("username", username);
+
     let response = await fetch(`${API}/admin_login`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ username, password })
     });
 
-    let data = await response.json();
+    let data;
+
+    try {
+        data = await response.json();
+    } catch (err) {
+        document.getElementById("message").innerText = "Server error";
+        return;
+    }
 
     if (response.status !== 200) {
         document.getElementById("message").innerText = "Invalid login";
         return;
     }
 
+    // ✅ Existing logic unchanged
     localStorage.setItem("role", data.role);
 
     document.getElementById("message").innerText = "Login success";
@@ -89,6 +115,11 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         window.location.href = "dashboard.html";
     }, 800);
 });
+
+// ✅ Navigate to forgot password page
+function goToForgot(){
+    window.location.href = "forgot.html";
+}
 </script>
 
 </body>

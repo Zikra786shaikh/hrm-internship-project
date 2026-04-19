@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import random
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+# ================== OTP STORAGE ==================
+otp_storage = {}
 
 # ================== DEPARTMENT DATA ==================
 departments = [
@@ -18,7 +22,7 @@ def home():
     return "Backend Running"
 
 
-# ================== LOGIN ==================
+# ================== LOGIN (FIXED WITH EMPLOYEES) ==================
 @app.route("/admin_login", methods=["POST"])
 def admin_login():
     data = request.json
@@ -26,21 +30,64 @@ def admin_login():
     username = data.get("username")
     password = data.get("password")
 
-    users = {
-        "admin": {"password": "1234", "role": "Admin"},
-        "manager": {"password": "1234", "role": "Manager"},
-        "employee": {"password": "1234", "role": "Employee"}
-    }
+    for emp in employees:
+        if emp["username"] == username and emp["password"] == password:
+            
+            # role mapping
+            role = "Admin" if emp["role_id"] == 1 else "Manager" if emp["role_id"] == 2 else "Employee"
 
-    user = users.get(username)
+            return jsonify({
+                "message": "Login successful",
+                "role": role
+            })
 
-    if user and user["password"] == password:
-        return jsonify({
-            "message": "Login successful",
-            "role": user["role"]
-        })
-    else:
-        return jsonify({"message": "Invalid credentials"}), 401
+    return jsonify({"message": "Invalid credentials"}), 401
+
+
+# ================== FORGOT PASSWORD ==================
+@app.route("/forgot_password", methods=["POST"])
+def forgot_password():
+    data = request.json
+    email = data.get("email")
+
+    for emp in employees:
+        if emp["email"] == email:
+            otp = str(random.randint(100000, 999999))
+            otp_storage[email] = otp
+
+            print("OTP for", email, "is:", otp)  # TEMP
+
+            return jsonify({"message": "OTP sent to email"}), 200
+
+    return jsonify({"message": "Email not found"}), 404
+
+
+# ================== VERIFY OTP ==================
+@app.route("/verify_otp", methods=["POST"])
+def verify_otp():
+    data = request.json
+    email = data.get("email")
+    otp = data.get("otp")
+
+    if otp_storage.get(email) == otp:
+        return jsonify({"message": "OTP verified"}), 200
+
+    return jsonify({"message": "Invalid OTP"}), 400
+
+
+# ================== RESET PASSWORD ==================
+@app.route("/reset_password", methods=["POST"])
+def reset_password():
+    data = request.json
+    email = data.get("email")
+    new_password = data.get("new_password")
+
+    for emp in employees:
+        if emp["email"] == email:
+            emp["password"] = new_password
+            return jsonify({"message": "Password updated successfully"}), 200
+
+    return jsonify({"message": "Error updating password"}), 400
 
 
 # ================== DEPARTMENT ==================
@@ -194,7 +241,6 @@ def restore_role(role_id):
 
 
 # ================== EMPLOYEE ==================
-# ================== EMPLOYEE ==================
 employees = [
     {
         "id": 1,
@@ -223,24 +269,11 @@ employees = [
         "reporting_manager_id": 1,
         "date_of_joining": "2024-02-01",
         "status": "active"
-    },
-    {
-        "id": 3,
-        "first_name": "Sara",
-        "last_name": "Shaikh",
-        "username": "sara",
-        "password": "1234",
-        "email": "sara@gmail.com",
-        "mobile": "7777777777",
-        "dept_id": 1,
-        "role_id": 2,
-        "reporting_manager_id": 1,
-        "date_of_joining": "2024-03-01",
-        "status": "active"
     }
 ]
 
-employee_id_counter = 4
+employee_id_counter = 3
+
 
 @app.route("/add_employee", methods=["POST"])
 def add_employee():

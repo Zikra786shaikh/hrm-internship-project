@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify OTP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: Arial;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Enter OTP</h2>
+
+    <input type="text" id="otp" placeholder="Enter OTP">
+    <button onclick="verifyOTP()">Verify</button>
+
+    <p id="message"></p>
+</div>
+
+<script>
+const API = "https://hrm-backend-al8a.onrender.com";
+
+async function verifyOTP() {
+    let otp = document.getElementById("otp").value.trim();
+    let email = localStorage.getItem("email");
+
+    let response = await fetch(`${API}/verify_otp`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, otp })
+    });
+
+    let data = await response.json();
+
+    document.getElementById("message").innerText = data.message;
+
+    if (response.status === 200) {
+        setTimeout(() => {
+            window.location.href = "reset.html";
+        }, 800);
+    }
+}
+</script>
+
+</body>
+</html>
