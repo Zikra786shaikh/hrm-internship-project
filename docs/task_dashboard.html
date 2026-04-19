@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HRM - Task Management</title>
+    <link rel="stylesheet" href="../css/style.css"> </head>
+<body>
+    <div class="dashboard-container">
+        <h2>Task Management Dashboard</h2>
+
+        <div class="stats-container">
+            <div class="stat-card">Total: <span id="stat-total">0</span></div>
+            <div class="stat-card">Pending: <span id="stat-pending">0</span></div>
+            <div class="stat-card">In Progress: <span id="stat-progress">0</span></div>
+            <div class="stat-card">Completed: <span id="stat-completed">0</span></div>
+        </div>
+
+        <button onclick="openTaskModal()">+ Create Task</button>
+
+        <div class="filter-bar">
+            <select id="filterEmployee" onchange="loadTasks()">
+                <option value="">Filter By Employee</option>
+            </select>
+            <select id="filterStatus" onchange="loadTasks()">
+                <option value="">Filter By Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <input type="date" id="fromDate" onchange="loadTasks()">
+            <input type="date" id="toDate" onchange="loadTasks()">
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr.No</th>
+                    <th>Employee Name</th>
+                    <th>Task Title</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody"></tbody>
+        </table>
+
+        <div id="pagination"></div>
+    </div>
+
+    <div id="taskModal" style="display:none;">
+        <form id="taskForm">
+            <input type="text" id="task_title" placeholder="Task Title" required>
+            <textarea id="task_description" placeholder="Description"></textarea>
+            <select id="task_priority">
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+            <select id="assigned_to" required>
+                </select>
+            <input type="date" id="start_date" required>
+            <input type="date" id="end_date" required>
+            <select id="task_type">
+                <option value="Individual">Individual</option>
+                <option value="Team">Team</option>
+            </select>
+            <button type="submit">Create Task</button>
+            <button type="button" onclick="closeTaskModal()">Cancel</button>
+        </form>
+    </div>
+
+    <script src="../js/task.js"></script>
+</body>
+</html>
