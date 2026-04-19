@@ -11,6 +11,12 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route("/")
 def home():
     return "Backend Running"
+@app.route("/test_env")
+def test_env():
+    return {
+        "email": os.environ.get("EMAIL_ADDRESS"),
+        "status": "working"
+    }
 
 
 # ================== OTP STORAGE ==================
@@ -23,8 +29,8 @@ def send_email_otp(receiver_email, otp):
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(
-            os.environ.get("EMAIL_ADDRESS"),
-            os.environ.get("EMAIL_PASSWORD")
+          os.environ.get("EMAIL_ADDRESS")
+os.environ.get("EMAIL_PASSWORD")
         )
 
         message = f"Subject: HRM OTP Verification\n\nYour OTP is: {otp}"
@@ -85,9 +91,7 @@ def forgot_password():
     data = request.json
     email = data.get("email")
 
-    for emp in employees:
-        if emp["email"] == email:
-
+    return jsonify({"message": "If email exists, OTP will be sent"}), 200
             otp = str(random.randint(100000, 999999))
             otp_storage[email] = otp
 
