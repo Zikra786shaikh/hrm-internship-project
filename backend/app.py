@@ -8,6 +8,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+@app.route("/")
+def home():
+    return "Backend Running"
+
 
 # ================== OTP STORAGE ==================
 otp_storage = {}
