@@ -8,23 +8,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 1. Logic: Dropdowns for Task Assignment & Filters
 async function loadReportingEmployees() {
-    // Note: Ensure your login script saves user as: localStorage.setItem("user", JSON.stringify(data))
     const userStr = localStorage.getItem("user");
     if (!userStr) return;
     
     const loggedInUser = JSON.parse(userStr); 
+    
+    // Fetching from the same 'employees' API used by your Employee Page
     const response = await fetch(`${API_BASE}/employees`);
     const allEmployees = await response.json();
 
-    // Show all for Admin, only direct reports for Managers
-    const filtered = allEmployees.filter(emp => 
+    // PDF REQUIREMENT: Filter to show only those reporting to the logged-in user
+    // If the logged-in user is 'Admin', they usually see everyone.
+    let filtered = allEmployees.filter(emp => 
         loggedInUser.role === 'Admin' || emp.reporting_manager_id === loggedInUser.id
     );
+
+    // If you want to see EVERYONE regardless of reporting (for testing):
+    // filtered = allEmployees; 
 
     const dropdown = document.getElementById("assigned_to");
     const filterDropdown = document.getElementById("filterEmployee");
 
-    const options = filtered.map(emp => `<option value="${emp.id}">${emp.first_name} ${emp.last_name}</option>`).join("");
+    // Mapping the 'first_name' and 'last_name' from your Employee Page data
+    const options = filtered.map(emp => 
+        `<option value="${emp.id}">${emp.first_name} ${emp.last_name}</option>`
+    ).join("");
     
     if(dropdown) dropdown.innerHTML = `<option value="">Select Employee</option>` + options;
     if(filterDropdown) filterDropdown.innerHTML = `<option value="">All Employees</option>` + options;

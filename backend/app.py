@@ -235,29 +235,44 @@ def reset_password():
     # ... (Keep all your existing imports and code above Task Management Module) ...
 
 # ================== TASK MANAGEMENT MODULE ==================
-# I added 3 sample tasks here so you can see the bars immediately
+# I have pre-linked these tasks to the employees above
 tasks = [
-    {"task_id": 1, "task_title": "Database Design", "task_description": "Create SQL schema", "task_priority": "High", "start_date": "2026-04-01", "end_date": "2026-04-10", "task_type": "Individual", "created_at": "2026-04-01 10:00:00", "status": 1},
-    {"task_id": 2, "task_title": "API Integration", "task_description": "Connect frontend to Render", "task_priority": "Medium", "start_date": "2026-04-05", "end_date": "2026-04-12", "task_type": "Individual", "created_at": "2026-04-05 11:00:00", "status": 1},
-    {"task_id": 3, "task_title": "UI Bug Fixes", "task_description": "Fix alignment on dashboard", "task_priority": "Low", "start_date": "2026-04-15", "end_date": "2026-04-20", "task_type": "Team", "created_at": "2026-04-15 09:00:00", "status": 1}
+    {"task_id": 1, "task_title": "Database Design", "task_description": "Create SQL schema", "task_priority": "High", "start_date": "2026-04-01", "end_date": "2026-04-10", "task_type": "Individual", "status": 1},
+    {"task_id": 2, "task_title": "API Integration", "task_description": "Connect frontend", "task_priority": "Medium", "start_date": "2026-04-05", "end_date": "2026-04-12", "task_type": "Individual", "status": 1},
+    {"task_id": 3, "task_title": "UI Bug Fixes", "task_description": "Fix alignment", "task_priority": "Low", "start_date": "2026-04-15", "end_date": "2026-04-20", "task_type": "Team", "status": 1},
+    {"task_id": 4, "task_title": "Security Audit", "task_description": "Check vulnerabilities", "task_priority": "High", "start_date": "2026-04-18", "end_date": "2026-04-25", "task_type": "Individual", "status": 1}
 ]
 
 task_assignments = [
-    {"assignment_id": 1, "task_id": 1, "employee_id": 1, "assigned_by": 1, "status": "Completed"},
-    {"assignment_id": 2, "task_id": 2, "employee_id": 1, "assigned_by": 1, "status": "Pending"},
-    {"assignment_id": 3, "task_id": 3, "employee_id": 1, "assigned_by": 1, "status": "In Progress"}
+    {"assignment_id": 1, "task_id": 1, "employee_id": 2, "assigned_by": 1, "status": "Completed"},
+    {"assignment_id": 2, "task_id": 2, "employee_id": 3, "assigned_by": 1, "status": "Pending"},
+    {"assignment_id": 3, "task_id": 3, "employee_id": 2, "assigned_by": 1, "status": "In Progress"},
+    {"assignment_id": 4, "task_id": 4, "employee_id": 3, "assigned_by": 1, "status": "Pending"}
 ]
 
-task_id_counter = 4
-assignment_id_counter = 4
+task_id_counter = 5
+assignment_id_counter = 5
 
-# ... (Keep the rest of your routes: add_task, get_dashboard_tasks, etc.) ...
+@app.route("/employees", methods=["GET"])
+def get_employees():
+    return jsonify([e for e in employees if e["status"] == "active"])
+
+@app.route("/admin_login", methods=["POST"])
+def admin_login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+    for emp in employees:
+        if emp["username"] == username and emp["status"] == "active":
+            if check_password_hash(emp["password"], password):
+                role = "Admin" if emp["role_id"] == 1 else "Manager" if emp["role_id"] == 2 else "Employee"
+                return jsonify({"message": "Login successful", "role": role, "id": emp["id"]})
+    return jsonify({"message": "Invalid credentials"}), 401
 
 @app.route("/add_task", methods=["POST"])
 def add_task():
     global task_id_counter, assignment_id_counter
     data = request.json
-    
     new_task = {
         "task_id": task_id_counter,
         "task_title": data.get("task_title"),
@@ -266,11 +281,9 @@ def add_task():
         "start_date": data.get("start_date"),
         "end_date": data.get("end_date"),
         "task_type": data.get("task_type"),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "status": 1
     }
     tasks.append(new_task)
-
     new_assignment = {
         "assignment_id": assignment_id_counter,
         "task_id": task_id_counter,
@@ -279,7 +292,6 @@ def add_task():
         "status": "Pending"
     }
     task_assignments.append(new_assignment)
-    
     task_id_counter += 1
     assignment_id_counter += 1
     return jsonify({"message": "Task created"}), 201
@@ -291,13 +303,15 @@ def get_dashboard_tasks():
     f_status = request.args.get("status")
     f_emp = request.args.get("employee_id")
 
+    # Filter assignments based on role
     filtered = task_assignments
-    if role == "Employee":
-        filtered = [a for a in task_assignments if a["employee_id"] == u_id]
-    elif role == "Manager":
+    if role == "Manager":
         reports = [e["id"] for e in employees if e["reporting_manager_id"] == u_id]
         filtered = [a for a in task_assignments if a["employee_id"] in reports]
+    elif role == "Employee":
+        filtered = [a for a in task_assignments if a["employee_id"] == u_id]
 
+    # Apply filters from UI
     if f_status: filtered = [a for a in filtered if a["status"] == f_status]
     if f_emp: filtered = [a for a in filtered if a["employee_id"] == int(f_emp)]
 
@@ -311,6 +325,7 @@ def get_dashboard_tasks():
     stats = {
         "total": len(result),
         "pending": len([r for r in result if r["status"] == "Pending"]),
+        "in_progress": len([r for r in result if r["status"] == "In Progress"]),
         "completed": len([r for r in result if r["status"] == "Completed"])
     }
     return jsonify({"tasks": result, "statistics": stats})
@@ -322,6 +337,5 @@ def delete_task(id):
             t["status"] = 0
             return jsonify({"message": "Deleted"})
     return jsonify({"message": "Not found"}), 404
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
