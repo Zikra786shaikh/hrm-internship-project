@@ -387,6 +387,93 @@ def get_reviews():
             "employee_name": f"{emp['first_name']} {emp['last_name']}" if emp else "Unknown"
         })
     return jsonify(result)
+# --- Enhanced Leave Storage with Raw Data ---
+leaves = [
+    {
+        "leaveid": 1,
+        "employeeid": 2, # John Doe
+        "leave_type": "PL",
+        "reason": "Personal family function in hometown",
+        "start_date": "2026-03-01",
+        "end_date": "2026-03-03",
+        "status": "approved"
+    },
+    {
+        "leaveid": 2,
+        "employeeid": 2, # John Doe
+        "leave_type": "SL",
+        "reason": "Severe viral fever",
+        "start_date": "2026-04-10",
+        "end_date": "2026-04-11",
+        "status": "approved"
+    },
+    {
+        "leaveid": 3,
+        "employeeid": 3, # Jane Smith
+        "leave_type": "CL",
+        "reason": "Out of town for urgent work",
+        "start_date": "2026-04-20",
+        "end_date": "2026-04-22",
+        "status": "pending"
+    },
+    {
+        "leaveid": 4,
+        "employeeid": 2, # John Doe
+        "leave_type": "PL",
+        "reason": "Summer Vacation",
+        "start_date": "2026-05-15",
+        "end_date": "2026-05-20",
+        "status": "rejected"
+    }
+]
+
+# Adjusted Quotas based on approved leaves above
+leave_quotas = {
+    2: {"SL": 6, "CL": 3, "PL": 8}, # John has used 1 SL and 2 PL
+    3: {"SL": 7, "CL": 3, "PL": 10} # Jane has used 0
+}
+leave_id_counter = 5
+
+@app.route("/apply_leave", methods=["POST"])
+def apply_leave():
+    global leave_id_counter
+    data = request.json
+    new_leave = {
+        "leaveid": leave_id_counter,
+        "employeeid": int(data.get("employeeid")),
+        "leave_type": data.get("leave_type"), # SL, CL, PL
+        "reason": data.get("reason"),
+        "start_date": data.get("start_date"),
+        "end_date": data.get("end_date"),
+        "status": "pending"
+    }
+    leaves.append(new_leave)
+    leave_id_counter += 1
+    return jsonify({"message": "Leave applied successfully"}), 201
+
+@app.route("/get_user_leaves/<int:emp_id>", methods=["GET"])
+def get_user_leaves(emp_id):
+    user_leaves = [l for l in leaves if l["employeeid"] == emp_id]
+    quota = leave_quotas.get(emp_id, {"SL": 0, "CL": 0, "PL": 0})
+    return jsonify({"leaves": user_leaves, "quota": quota})
+
+@app.route("/update_leave_status", methods=["POST"])
+def update_leave_status():
+    data = request.json
+    lid = int(data.get("leaveid"))
+    new_status = data.get("status") # approved / rejected
+    
+    for l in leaves:
+        if l["leaveid"] == lid:
+            l["status"] = new_status
+            # If approved, deduct from quota
+            if new_status == "approved":
+                emp_id = l["employeeid"]
+                ltype = l["leave_type"]
+                if emp_id in leave_quotas:
+                    leave_quotas[emp_id][ltype] -= 1 # Simple 1-day deduction for logic
+            return jsonify({"message": f"Leave {new_status}"})
+    return jsonify({"message": "Leave not found"}), 404
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
