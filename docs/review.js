@@ -88,4 +88,20 @@ async function loadReviewTable() {
         console.error("Error fetching comments:", error);
     }
 }
-}
+}// Attach to window so the HTML 'onclick' can always find it
+window.viewComments = async function(id) {
+    console.log("Viewing review ID:", id); // Check your console (F12) to see if this prints
+    try {
+        const res = await fetch(`${API_BASE}/get_reviews`);
+        const reviews = await res.json();
+        const review = reviews.find(r => r.review_id === id);
+        
+        if (review) {
+            alert(`EMPLOYEE: ${review.employee_name}\n\nCOMMENT: ${review.comments}`);
+        } else {
+            alert("Review details not found.");
+        }
+    } catch (error) {
+        alert("Error fetching review details.");
+    }
+};
