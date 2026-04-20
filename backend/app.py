@@ -324,6 +324,69 @@ def delete_task(id):
             t["status"] = 0
             return jsonify({"message": "Deleted"})
     return jsonify({"message": "Not found"}), 404
+# --- Performance Review Storage with Hardcoded Records ---
+reviews = [
+    {
+        "review_id": 1,
+        "review_title": "Quarterly Performance Sync",
+        "employee_id": 2,  # John Doe
+        "reviewed_by": 1,
+        "review_date": "2026-03-15",
+        "review_period": "Quarterly",
+        "rating": 9,
+        "comments": "Excellent progress on database design and backend architecture."
+    },
+    {
+        "review_id": 2,
+        "review_title": "Monthly Progress Check",
+        "employee_id": 3,  # Jane Smith
+        "reviewed_by": 1,
+        "review_date": "2026-04-01",
+        "review_period": "Monthly",
+        "rating": 8,
+        "comments": "Great work on API integration. Needs to focus more on security audits."
+    },
+    {
+        "review_id": 3,
+        "review_title": "Annual Excellence Review",
+        "employee_id": 2,  # John Doe
+        "reviewed_by": 1,
+        "review_date": "2026-01-10",
+        "review_period": "Annual",
+        "rating": 10,
+        "comments": "Consistently top performer. Promoted to Senior Developer role."
+    }
+]
+review_id_counter = 4 # Start next ID at 4
+@app.route("/add_review", methods=["POST"])
+def add_review():
+    global review_id_counter
+    data = request.json
+    new_review = {
+        "review_id": review_id_counter,
+        "review_title": data.get("review_title"),
+        "employee_id": int(data.get("employee_id")),
+        "reviewed_by": int(data.get("reviewed_by")),
+        "review_date": data.get("review_date"),
+        "review_period": data.get("review_period"), # Monthly, Quarterly, Annual [cite: 14]
+        "rating": int(data.get("rating")), # Range 1-10 [cite: 3]
+        "comments": data.get("comments")
+    }
+    reviews.append(new_review)
+    review_id_counter += 1
+    return jsonify({"message": "Review added successfully"}), 201
+
+@app.route("/get_reviews", methods=["GET"])
+def get_reviews():
+    # Join with employee names for the dashboard table [cite: 28, 42]
+    result = []
+    for r in reviews:
+        emp = next((e for e in employees if e["id"] == r["employee_id"]), None)
+        result.append({
+            **r,
+            "employee_name": f"{emp['first_name']} {emp['last_name']}" if emp else "Unknown"
+        })
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

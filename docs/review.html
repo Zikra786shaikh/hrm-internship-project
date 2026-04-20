@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Performance Review Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .stat-card { padding: 20px; border-radius: 10px; border-left: 5px solid #0d6efd; background: #f8f9fa; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <h2>Performance Management Dashboard</h2>
+        <hr>
+
+        <div class="row mb-4 text-center">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h6>Monthly Reviews</h6>
+                    <h3 id="stat-monthly">0</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card" style="border-left-color: #198754;">
+                    <h6>Quarterly Reviews</h6>
+                    <h3 id="stat-quarterly">0</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card" style="border-left-color: #ffc107;">
+                    <h6>Annual Reviews</h6>
+                    <h3 id="stat-annual">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#reviewModal">Add Review</button>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sr.No</th>
+                            <th>Employee Name</th>
+                            <th>Review Title</th>
+                            <th>Date</th>
+                            <th>Period</th>
+                            <th>Rating (1-10)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5>Add New Review</h5></div>
+                <div class="modal-body">
+                    <form id="reviewForm" onsubmit="handleReviewSubmit(event)">
+                        <div class="mb-3">
+                            <label>Review Title:</label>
+                            <input type="text" id="review_title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Select Employee:</label>
+                            <select id="review_employee_id" class="form-select" required>
+                                <option value="">Open this select menu</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Review Date:</label>
+                            <input type="date" id="review_date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Review Period:</label>
+                            <select id="review_period" class="form-select" required>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
+                                <option value="Annual">Annual</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Rating (1-10):</label>
+                            <input type="number" id="review_rating" class="form-control" min="1" max="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Review Comment:</label>
+                            <textarea id="review_comments" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Add Review</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="review.js"></script>
+</body>
+</html>
