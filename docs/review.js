@@ -67,8 +67,25 @@ async function loadReviewTable() {
                 <td>${r.review_date}</td>
                 <td>${r.review_period}</td>
                 <td><span class="badge bg-primary">${r.rating}/10</span></td>
-                <td><button class="btn btn-sm btn-info text-white">View</button></td>
+               <td><button class="btn btn-sm btn-info text-white" onclick="viewComments(${r.review_id})">View</button></td>
             </tr>
         `).join("");
     }
+    async function viewComments(id) {
+    try {
+        const res = await fetch(`${API_BASE}/get_reviews`);
+        const reviews = await res.json();
+        
+        // Find the specific review by ID
+        const review = reviews.find(r => r.review_id === id);
+        
+        if (review) {
+            alert(`Review Comments for ${review.employee_name}:\n\n"${review.comments}"`);
+        } else {
+            alert("Review not found.");
+        }
+    } catch (error) {
+        console.error("Error fetching comments:", error);
+    }
+}
 }
