@@ -123,7 +123,10 @@
                 </select>
             </div>
         </div>
-        <select id="assigned_to" class="form-select mb-3" required></select>
+        <div class="col-md-6">
+            <label>Assigned To:</label>
+           <select id="assigned_to" class="form-select" required><option value="">Select Employee</option></select>
+           </div>
         <div class="row g-2 mb-4">
             <div class="col-md-6"><label class="small">Start Date</label><input type="date" id="start_date" class="form-control"></div>
             <div class="col-md-6"><label class="small">End Date</label><input type="date" id="end_date" class="form-control"></div>
@@ -135,7 +138,7 @@
     </form>
 </div>
 
-<script src="../js/task.js"></script>
+<script src="task.js"></script>
 <script>
     // Link modal functions to elements
     function openTaskModal() { 
